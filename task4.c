@@ -23,49 +23,77 @@ int main()
 			// BOOOOOOOONG!!!!! Synchronization Achieved!!!
 			// Hint -> Place a Breakpoint here for performance measurements!
 			return(i); //whenever the peak is found the system quits.
-			// (in the simulation data the peak is located at i=715)
+			// (in the simulation data the peak is located at i=715) 
+			//NZ - I've confirmed the number, assembly inlining gives this result, so far.
 		};
 	}
 }
 
 int Timing_Synchronization(int *Samples, int *Coeff) {
-	
+	/*NZ: This now executes the full function in ~0.00023883 sec +/- with assembly inline
+	To Do: re-write the for loop in assembly
+					(this may require reorganizing variables.*/
 
 	
 	int accReal; //= 0;
 	int accImaginary; //= 0;
-	int limit = 256;
+	int limit;// = 256;
 	int i;
 	
-	__asm{mov accReal, #0
-				mov accImaginary, #0}
+	//just playing with syntax as I go
+	//note: found out that LDR <variable>, <immediate> is not supported, must use MOV instead
+	__asm{MOV accReal, #0
+				MOV accImaginary, #0
+				MOV limit, #256 
+				MOV i, #0}
 				
 	
-	if (Samples[129] == 0 && Samples[128] == 0) limit = 128;  
+	//if (Samples[129] == 0 && Samples[128] == 0) limit = 128;  
+	//commented out this line because I just want to keep the assembly simple for now
 	//Can we assume 2 samples cannot be 0 right beside each other? ASK FABIO
-	for (i = 0; i < limit; i++) {
+				
+	for (i = 0; i < limit; i++) { //haven't decided how I want to handle the for loop yet
 		int samplesReal, coeffReal, samplesImaginary, coeffImaginary;
 		int sample = Samples[i];
 		if (sample != 0) {
 			
-			samplesReal = sample >> 16;   
-			samplesImaginary = (sample << 16) >> 16; 
-			coeffReal = Coeff[i] >> 16; 
-			coeffImaginary = (Coeff[i] << 16) >> 16;
+//			samplesReal = sample >> 16;   
+//			samplesImaginary = (sample << 16) >> 16; 
+//			coeffReal = Coeff[i] >> 16; 
+//			coeffImaginary = (Coeff[i] << 16) >> 16;
+			
+			/*this code needs optimizing, code is smaller when not using assembly
+				I'm going to see about combining the shifts for the imaginary terms,
+				apparently ASR/ASL can be used instead of mov (preferred synonyms).*/
+			
+			__asm{MOV samplesReal, sample, ASR #16
+						MOV samplesImaginary, sample, ASL #16
+						ASR samplesImaginary, samplesImaginary, #16 
+						MOV coeffReal, Coeff[i], ASR #16
+						MOV coeffImaginary, Coeff[i], ASL #16
+						ASR coeffImaginary, coeffImaginary, #16 }
+			
 			//because (a+ib)*(c+id) = (ac - db) + (ad + bc)i
-			//accReal += ((samplesReal*coeffReal) - (samplesImaginary*coeffImaginary)) >> 16;
-			//accImaginary += ((samplesReal*coeffImaginary) + (samplesImaginary*coeffReal)) >> 16;
-			
-			
+			accReal += ((samplesReal*coeffReal) - (samplesImaginary*coeffImaginary)) >> 16;
+			accImaginary += ((samplesReal*coeffImaginary) + (samplesImaginary*coeffReal)) >> 16;
 		}
 			
 		sample = Samples[++i];
 		if (sample != 0) {
 			
-			samplesReal = sample >> 16;  
-			samplesImaginary = (sample << 16) >> 16; 
-			coeffReal = Coeff[i] >> 16;  
-			coeffImaginary = (Coeff[i] << 16) >> 16;
+//			samplesReal = sample >> 16;  
+//			samplesImaginary = (sample << 16) >> 16; 
+//			coeffReal = Coeff[i] >> 16;  
+//			coeffImaginary = (Coeff[i] << 16) >> 16;
+			
+			//see note above
+			__asm{MOV samplesReal, sample, ASR #16
+						MOV samplesImaginary, sample, ASL #16
+						ASR samplesImaginary, samplesImaginary, #16 
+						MOV coeffReal, Coeff[i], ASR #16
+						MOV coeffImaginary, Coeff[i], ASL #16
+						ASR coeffImaginary, coeffImaginary, #16 }
+			
 			//because (a+ib)*(c+id) = (ac - db) + (ad + bc)i
 			accReal += ((samplesReal*coeffReal) - (samplesImaginary*coeffImaginary)) >> 16;
 			accImaginary += ((samplesReal*coeffImaginary) + (samplesImaginary*coeffReal)) >> 16;
@@ -73,4 +101,3 @@ int Timing_Synchronization(int *Samples, int *Coeff) {
 }
 	return (accReal*accReal) + (accImaginary*accImaginary);  //Real(acc)^2 + Imag(acc)^2		
 }
-
