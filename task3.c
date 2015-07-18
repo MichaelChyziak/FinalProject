@@ -6,7 +6,7 @@ const int DetThr=0x69000;
 int mod_out;
 int i,j,sample[256];
 
-float Timing_Synchronization(int *Samples, int *Coeff) {
+int Timing_Synchronization(int *Samples, int *Coeff) {
 	int accReal = 0;
 	int accImaginary = 0;
 	int limit = 256;
