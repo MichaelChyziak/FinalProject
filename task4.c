@@ -84,40 +84,37 @@ int Timing_Synchronization(int *Samples, int *Coeff) {
 
 
        //Unrolling the loop once.
-//            ADD i, i, #1
-//            CMP Samples[i], #0
-//            BEQ check_count
-//			
-//			//loading vars
-//						MOV samplesReal, Samples[i], ASR #16
-//            MOV samplesImaginary, Samples[i], LSL #16
-//            ASR samplesImaginary, samplesImaginary, #16
-//            MOV coeffReal, Coeff[i], ASR #16
-//            MOV coeffImaginary, Coeff[i], LSL #16
-//            ASR coeffImaginary, coeffImaginary, #16
+            ADD i, i, #1
+            CMP Samples[i], #0
+            BEQ check_count
+			
+			//loading vars
+						MOV samplesReal, Samples[i], ASR #16
+            MOV samplesImaginary, Samples[i], LSL #16
+            ASR samplesImaginary, samplesImaginary, #16
+            MOV coeffReal, Coeff[i], ASR #16
+            MOV coeffImaginary, Coeff[i], LSL #16
+            ASR coeffImaginary, coeffImaginary, #16
 
-//			
-//			
-//			//because (a+ib)*(c+id) = (ac - db) + (ad + bc)i
-//			//accReal += ((samplesReal*coeffReal) - (samplesImaginary*coeffImaginary)) >> 16;
-//			//accImaginary += ((samplesReal*coeffImaginary) + (samplesImaginary*coeffReal)) >> 16;
+			
+			
+			//because (a+ib)*(c+id) = (ac - db) + (ad + bc)i
+			//accReal += ((samplesReal*coeffReal) - (samplesImaginary*coeffImaginary)) >> 16;
+			//accImaginary += ((samplesReal*coeffImaginary) + (samplesImaginary*coeffReal)) >> 16;
 
-//						MUL temp1, samplesReal, coeffReal
-//            MUL temp2, samplesImaginary, coeffImaginary
-//            SUB temp1, temp1, temp2
-//            ADD accReal, accReal, temp1, ASR #16
+						MUL temp1, samplesReal, coeffReal
+            MUL temp2, samplesImaginary, coeffImaginary
+            SUB temp1, temp1, temp2
+            ADD accReal, accReal, temp1, ASR #16
 
-//						MUL temp1, samplesReal, coeffImaginary
-//            MLA accImaginary, samplesImaginary, coeffReal, temp1
-//            ASR accImaginary, accImaginary, #16
+						MUL temp1, samplesReal, coeffImaginary
+            MLA accImaginary, samplesImaginary, coeffReal, temp1
+            ASR accImaginary, accImaginary, #16
 
         check_count: //iterates the loop counter and checks it.
             ADD i, i, #1
             CMP i, limit
-            BEQ exit_loop
-            B loop
-
-        exit_loop:
+            BNE loop
 
 		}
 
