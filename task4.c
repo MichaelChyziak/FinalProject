@@ -37,17 +37,17 @@ int Timing_Synchronization(int *Samples, int *Coeff) {
 					(this may require reorganizing variables.*/
 
 	
-	int accReal; //= 0;
-	int accImaginary; //= 0;
-	int limit;// = 256;  //possibly hard code this value somewhere
+	int accReal = 0;
+	int accImaginary = 0;
+	int limit = 256;  //possibly hard code this value somewhere
 	int i;
 	
 	//just playing with syntax as I go
 	//note: found out that LDR <variable>, <immediate> is not supported, must use MOV instead
-	__asm{MOV accReal, #0
-				MOV accImaginary, #0
-				MOV limit, #256 //possibly hard coding this
-				MOV i, #0}
+//	__asm{MOV accReal, #0
+//				MOV accImaginary, #0
+//				MOV limit, #256 //possibly hard coding this
+//				MOV i, #0}
 				
 	
 	//if (Samples[129] == 0 && Samples[128] == 0) limit = 128;  
@@ -69,10 +69,10 @@ int Timing_Synchronization(int *Samples, int *Coeff) {
 				apparently ASR/ASL can be used instead of mov (preferred synonyms).*/
 			
 			__asm{MOV samplesReal, sample, ASR #16
-						MOV samplesImaginary, sample, ASL #16
+						MOV samplesImaginary, sample, LSL #16
 						ASR samplesImaginary, samplesImaginary, #16 
 						MOV coeffReal, Coeff[i], ASR #16
-						MOV coeffImaginary, Coeff[i], ASL #16
+						MOV coeffImaginary, Coeff[i], LSL #16
 						ASR coeffImaginary, coeffImaginary, #16 }
 			
 			//because (a+ib)*(c+id) = (ac - db) + (ad + bc)i
@@ -107,10 +107,10 @@ int Timing_Synchronization(int *Samples, int *Coeff) {
 			
 			//see note above
 			__asm{MOV samplesReal, sample, ASR #16
-						MOV samplesImaginary, sample, ASL #16
+						MOV samplesImaginary, sample, LSL #16
 						ASR samplesImaginary, samplesImaginary, #16 
 						MOV coeffReal, Coeff[i], ASR #16
-						MOV coeffImaginary, Coeff[i], ASL #16
+						MOV coeffImaginary, Coeff[i], LSL #16
 						ASR coeffImaginary, coeffImaginary, #16 }
 			
 			//because (a+ib)*(c+id) = (ac - db) + (ad + bc)i
