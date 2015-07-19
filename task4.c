@@ -2,6 +2,8 @@
 #include "compact_coeff.h"
 #include "compact_R.h"
 
+
+
 #pragma ARM
 
 const int DetThr=0x69000;
@@ -33,100 +35,93 @@ int main()
 
 
 int Timing_Synchronization(int *Samples, int *Coeff) {
-	
+
 	int accReal = 0;
 	int accImaginary = 0;
 	int limit = 256;
-	int i;
-	
-	
-	//code size slightly smaller without this bit.
-//	__asm{MOV accReal, #0
-//				MOV accImaginary, #0
-//				MOV limit, #256 //possibly hard coding this
-//				MOV i, #0}
-				
-	//commented out this line because I just want to keep the assembly simple for now -NZ
-	//if (Samples[129] == 0 && Samples[128] == 0) limit = 128;  
+	int i=0;
+
+	int samplesReal, coeffReal, samplesImaginary, coeffImaginary;
+    //int sample = Samples[i];
+  int temp1,temp2;
+
+
+
+	//commented out this line because I just want to keep the assembly simpler for now -NZ
+	//if (Samples[129] == 0 && Samples[128] == 0) limit = 128;
 	//Can we assume 2 samples cannot be 0 right beside each other? ASK FABIO
-				
-	for (i = 0; i < limit; i++) { //haven't decided how I want to handle the for loop yet
-		int samplesReal, coeffReal, samplesImaginary, coeffImaginary;
-		int sample = Samples[i];
-		int temp1,temp2;
-		if (sample != 0) {
-			
-//			samplesReal = sample >> 16;   
-//			samplesImaginary = (sample << 16) >> 16; 
-//			coeffReal = Coeff[i] >> 16; 
-//			coeffImaginary = (Coeff[i] << 16) >> 16;
-			
-			/*this code needs optimizing, code is smaller when not using assembly
-				I'm going to see about combining the shifts for the imaginary terms,
-				apparently ASR/LSL can be used instead of mov (preferred synonyms).*/
-			
-			__asm{MOV samplesReal, sample, ASR #16
-						MOV samplesImaginary, sample, LSL #16
-						ASR samplesImaginary, samplesImaginary, #16 
-						MOV coeffReal, Coeff[i], ASR #16
-						MOV coeffImaginary, Coeff[i], LSL #16
-						ASR coeffImaginary, coeffImaginary, #16 }
-			
+
+    __asm{
+
+		//if (sample != 0) {
+
+        loop:
+
+            CMP Samples[i], #0
+            BEQ check_count
+
+			//loading vars
+						MOV samplesReal, Samples[i], ASR #16
+            MOV samplesImaginary, Samples[i], LSL #16
+            ASR samplesImaginary, samplesImaginary, #16
+            MOV coeffReal, Coeff[i], ASR #16
+            MOV coeffImaginary, Coeff[i], LSL #16
+            ASR coeffImaginary, coeffImaginary, #16
+
 			//because (a+ib)*(c+id) = (ac - db) + (ad + bc)i
 			//accReal += ((samplesReal*coeffReal) - (samplesImaginary*coeffImaginary)) >> 16;
 			//accImaginary += ((samplesReal*coeffImaginary) + (samplesImaginary*coeffReal)) >> 16;
-						
-			__asm{//accReal - this is not implemented as a MLA in task 3 either, this is the only way
-						//I could think to do it, another way might be to use 2's complement of the second term
-						// and then use MLA.
+
+
 						MUL temp1, samplesReal, coeffReal
-						MUL temp2, samplesImaginary, coeffImaginary 
-						SUB temp1, temp1, temp2
-						ADD accReal, accReal, temp1, ASR #16
-				
-						//accImaginary
+            MUL temp2, samplesImaginary, coeffImaginary
+            SUB temp1, temp1, temp2
+            ADD accReal, accReal, temp1, ASR #16
+
 						MUL temp1, samplesReal, coeffImaginary
-						MLA accImaginary, samplesImaginary, coeffReal, temp1
-						ASR accImaginary, accImaginary, #16}
-						
-						
+            MLA accImaginary, samplesImaginary, coeffReal, temp1
+            ASR accImaginary, accImaginary, #16
+
+
+       //Unrolling the loop once.
+//            ADD i, i, #1
+//            CMP Samples[i], #0
+//            BEQ check_count
+//			
+//			//loading vars
+//						MOV samplesReal, Samples[i], ASR #16
+//            MOV samplesImaginary, Samples[i], LSL #16
+//            ASR samplesImaginary, samplesImaginary, #16
+//            MOV coeffReal, Coeff[i], ASR #16
+//            MOV coeffImaginary, Coeff[i], LSL #16
+//            ASR coeffImaginary, coeffImaginary, #16
+
+//			
+//			
+//			//because (a+ib)*(c+id) = (ac - db) + (ad + bc)i
+//			//accReal += ((samplesReal*coeffReal) - (samplesImaginary*coeffImaginary)) >> 16;
+//			//accImaginary += ((samplesReal*coeffImaginary) + (samplesImaginary*coeffReal)) >> 16;
+
+//						MUL temp1, samplesReal, coeffReal
+//            MUL temp2, samplesImaginary, coeffImaginary
+//            SUB temp1, temp1, temp2
+//            ADD accReal, accReal, temp1, ASR #16
+
+//						MUL temp1, samplesReal, coeffImaginary
+//            MLA accImaginary, samplesImaginary, coeffReal, temp1
+//            ASR accImaginary, accImaginary, #16
+
+        check_count: //iterates the loop counter and checks it.
+            ADD i, i, #1
+            CMP i, limit
+            BEQ exit_loop
+            B loop
+
+        exit_loop:
+
 		}
-			
-		sample = Samples[i+1]; //changed this from pre-incrementing i
-													 //something about this line makes the loop sum
-													 //incorrectly when using inline assembly, this is closer to 715 now (785)
-													 //incrementing i in the loop causes peak at over 800 (in one case, over 900)
-		if (sample != 0) {
-			
-//			samplesReal = sample >> 16;  
-//			samplesImaginary = (sample << 16) >> 16; 
-//			coeffReal = Coeff[i] >> 16;  
-//			coeffImaginary = (Coeff[i] << 16) >> 16;
-			
-			//see note above
-			__asm{MOV samplesReal, sample, ASR #16
-						MOV samplesImaginary, sample, LSL #16
-						ASR samplesImaginary, samplesImaginary, #16 
-						MOV coeffReal, Coeff[i], ASR #16
-						MOV coeffImaginary, Coeff[i], LSL #16
-						ASR coeffImaginary, coeffImaginary, #16 }
-			
-			//because (a+ib)*(c+id) = (ac - db) + (ad + bc)i
-			//accReal += ((samplesReal*coeffReal) - (samplesImaginary*coeffImaginary)) >> 16;
-			//accImaginary += ((samplesReal*coeffImaginary) + (samplesImaginary*coeffReal)) >> 16;
-						
-						//see note above
-			__asm{
-						MUL temp1, samplesReal, coeffReal
-						MUL temp2, samplesImaginary, coeffImaginary
-						SUB temp1, temp1, temp2
-						ADD accReal, accReal, temp1, ASR #16
-				
-						//accImaginary
-						MUL temp1, samplesReal, coeffImaginary
-						MLA accImaginary, samplesImaginary, coeffReal, temp1
-						ASR accImaginary, accImaginary, #16}
-		}
+
+
+	return (accReal*accReal) + (accImaginary*accImaginary);  //Real(acc)^2 + Imag(acc)^2
 }
-	return (accReal*accReal) + (accImaginary*accImaginary);  //Real(acc)^2 + Imag(acc)^2		
-}
+
