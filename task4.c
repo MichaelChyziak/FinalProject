@@ -29,6 +29,8 @@ int main()
 	}
 }
 
+
+//Somethin isn't right with the assembly. Need to think about it: gives peak at i = 3 - clearly wrong.
 int Timing_Synchronization(int *Samples, int *Coeff) {
 	/*NZ: This now executes the full function in ~0.00023883 sec +/- with assembly inline
 	To Do: re-write the for loop in assembly
@@ -37,14 +39,14 @@ int Timing_Synchronization(int *Samples, int *Coeff) {
 	
 	int accReal; //= 0;
 	int accImaginary; //= 0;
-	int limit;// = 256;
+	int limit;// = 256;  //possibly hard code this value somewhere
 	int i;
 	
 	//just playing with syntax as I go
 	//note: found out that LDR <variable>, <immediate> is not supported, must use MOV instead
 	__asm{MOV accReal, #0
 				MOV accImaginary, #0
-				MOV limit, #256 
+				MOV limit, #256 //possibly hard coding this
 				MOV i, #0}
 				
 	
@@ -74,8 +76,25 @@ int Timing_Synchronization(int *Samples, int *Coeff) {
 						ASR coeffImaginary, coeffImaginary, #16 }
 			
 			//because (a+ib)*(c+id) = (ac - db) + (ad + bc)i
-			accReal += ((samplesReal*coeffReal) - (samplesImaginary*coeffImaginary)) >> 16;
-			accImaginary += ((samplesReal*coeffImaginary) + (samplesImaginary*coeffReal)) >> 16;
+			//accReal += ((samplesReal*coeffReal) - (samplesImaginary*coeffImaginary)) >> 16;
+			//accImaginary += ((samplesReal*coeffImaginary) + (samplesImaginary*coeffReal)) >> 16;
+						
+			__asm{//accReal - this is not implemented as a MLA in task 3 either, this is the only way
+						//I could think to do it, another way might be to use 2's complement of the second term
+						// and add them -> then use MLA.
+						MUL R11, samplesReal, coeffReal
+						MUL R12, samplesImaginary, coeffImaginary //I noticed here that the compiler assigns R14,
+						//even though its the link register. We can't access this with inline assembly - probably 
+						//why the compiler is much better at optimizing.
+						SUB R11, R11, R12, ASR #16
+						ADD accReal, accReal, R11
+				
+						//accImaginary
+						MUL R11, samplesReal, coeffImaginary
+						MLA R12, samplesImaginary, coeffReal, R11
+						ASR R12, #16}
+						
+						
 		}
 			
 		sample = Samples[++i];
@@ -95,8 +114,19 @@ int Timing_Synchronization(int *Samples, int *Coeff) {
 						ASR coeffImaginary, coeffImaginary, #16 }
 			
 			//because (a+ib)*(c+id) = (ac - db) + (ad + bc)i
-			accReal += ((samplesReal*coeffReal) - (samplesImaginary*coeffImaginary)) >> 16;
-			accImaginary += ((samplesReal*coeffImaginary) + (samplesImaginary*coeffReal)) >> 16;
+			//accReal += ((samplesReal*coeffReal) - (samplesImaginary*coeffImaginary)) >> 16;
+			//accImaginary += ((samplesReal*coeffImaginary) + (samplesImaginary*coeffReal)) >> 16;
+						
+			__asm{//see notes above
+						MUL R11, samplesReal, coeffReal
+						MUL R12, samplesImaginary, coeffImaginary
+						SUB R11, R11, R12, ASR #16
+						ADD accReal, accReal, R11
+				
+						//accImaginary
+						MUL R11, samplesReal, coeffImaginary
+						MLA R12, samplesImaginary, coeffReal, R11
+						ASR R12, #16}
 		}
 }
 	return (accReal*accReal) + (accImaginary*accImaginary);  //Real(acc)^2 + Imag(acc)^2		
