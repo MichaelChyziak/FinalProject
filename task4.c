@@ -24,39 +24,36 @@ int main()
 			// Hint -> Place a Breakpoint here for performance measurements!
 			return(i); //whenever the peak is found the system quits.
 			// (in the simulation data the peak is located at i=715) 
-			//NZ - I've confirmed the number, assembly inlining gives this result, so far.
+			
+			//NZ: Now goes to 758
 		};
 	}
 }
 
 
-//Somethin isn't right with the assembly. Need to think about it: gives peak at i = 3 - clearly wrong.
-int Timing_Synchronization(int *Samples, int *Coeff) {
-	/*NZ: This now executes the full function in ~0.00023883 sec +/- with assembly inline
-	To Do: re-write the for loop in assembly
-					(this may require reorganizing variables.*/
 
+int Timing_Synchronization(int *Samples, int *Coeff) {
 	
 	int accReal = 0;
 	int accImaginary = 0;
-	int limit = 256;  //possibly hard code this value somewhere
+	int limit = 256;
 	int i;
 	
-	//just playing with syntax as I go
-	//note: found out that LDR <variable>, <immediate> is not supported, must use MOV instead
+	
+	//code size slightly smaller without this bit.
 //	__asm{MOV accReal, #0
 //				MOV accImaginary, #0
 //				MOV limit, #256 //possibly hard coding this
 //				MOV i, #0}
 				
-	
+	//commented out this line because I just want to keep the assembly simple for now -NZ
 	//if (Samples[129] == 0 && Samples[128] == 0) limit = 128;  
-	//commented out this line because I just want to keep the assembly simple for now
 	//Can we assume 2 samples cannot be 0 right beside each other? ASK FABIO
 				
 	for (i = 0; i < limit; i++) { //haven't decided how I want to handle the for loop yet
 		int samplesReal, coeffReal, samplesImaginary, coeffImaginary;
 		int sample = Samples[i];
+		int temp1,temp2;
 		if (sample != 0) {
 			
 //			samplesReal = sample >> 16;   
@@ -66,7 +63,7 @@ int Timing_Synchronization(int *Samples, int *Coeff) {
 			
 			/*this code needs optimizing, code is smaller when not using assembly
 				I'm going to see about combining the shifts for the imaginary terms,
-				apparently ASR/ASL can be used instead of mov (preferred synonyms).*/
+				apparently ASR/LSL can be used instead of mov (preferred synonyms).*/
 			
 			__asm{MOV samplesReal, sample, ASR #16
 						MOV samplesImaginary, sample, LSL #16
@@ -81,23 +78,24 @@ int Timing_Synchronization(int *Samples, int *Coeff) {
 						
 			__asm{//accReal - this is not implemented as a MLA in task 3 either, this is the only way
 						//I could think to do it, another way might be to use 2's complement of the second term
-						// and add them -> then use MLA.
-						MUL R11, samplesReal, coeffReal
-						MUL R12, samplesImaginary, coeffImaginary //I noticed here that the compiler assigns R14,
-						//even though its the link register. We can't access this with inline assembly - probably 
-						//why the compiler is much better at optimizing.
-						SUB R11, R11, R12, ASR #16
-						ADD accReal, accReal, R11
+						// and then use MLA.
+						MUL temp1, samplesReal, coeffReal
+						MUL temp2, samplesImaginary, coeffImaginary 
+						SUB temp1, temp1, temp2
+						ADD accReal, accReal, temp1, ASR #16
 				
 						//accImaginary
-						MUL R11, samplesReal, coeffImaginary
-						MLA R12, samplesImaginary, coeffReal, R11
-						ASR R12, #16}
+						MUL temp1, samplesReal, coeffImaginary
+						MLA accImaginary, samplesImaginary, coeffReal, temp1
+						ASR accImaginary, accImaginary, #16}
 						
 						
 		}
 			
-		sample = Samples[++i];
+		sample = Samples[i+1]; //changed this from pre-incrementing i
+													 //something about this line makes the loop sum
+													 //incorrectly when using inline assembly, this is closer to 715 now (785)
+													 //incrementing i in the loop causes peak at over 800 (in one case, over 900)
 		if (sample != 0) {
 			
 //			samplesReal = sample >> 16;  
@@ -117,16 +115,17 @@ int Timing_Synchronization(int *Samples, int *Coeff) {
 			//accReal += ((samplesReal*coeffReal) - (samplesImaginary*coeffImaginary)) >> 16;
 			//accImaginary += ((samplesReal*coeffImaginary) + (samplesImaginary*coeffReal)) >> 16;
 						
-			__asm{//see notes above
-						MUL R11, samplesReal, coeffReal
-						MUL R12, samplesImaginary, coeffImaginary
-						SUB R11, R11, R12, ASR #16
-						ADD accReal, accReal, R11
+						//see note above
+			__asm{
+						MUL temp1, samplesReal, coeffReal
+						MUL temp2, samplesImaginary, coeffImaginary
+						SUB temp1, temp1, temp2
+						ADD accReal, accReal, temp1, ASR #16
 				
 						//accImaginary
-						MUL R11, samplesReal, coeffImaginary
-						MLA R12, samplesImaginary, coeffReal, R11
-						ASR R12, #16}
+						MUL temp1, samplesReal, coeffImaginary
+						MLA accImaginary, samplesImaginary, coeffReal, temp1
+						ASR accImaginary, accImaginary, #16}
 		}
 }
 	return (accReal*accReal) + (accImaginary*accImaginary);  //Real(acc)^2 + Imag(acc)^2		
