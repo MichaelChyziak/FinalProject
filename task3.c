@@ -10,7 +10,7 @@ int Timing_Synchronization(int *Samples, int *Coeff) {
 	int accReal = 0;
 	int accImaginary = 0;
 	int limit = 256;
-	int i;
+	int i, coeff;	
 	if (Samples[129] == 0 && Samples[128] == 0) limit = 128;  //Can we assume 2 samples cannot be 0 right beside each other? ASK FABIO
 	for (i = 0; i < limit; i++) {
 		int samplesReal, coeffReal, samplesImaginary, coeffImaginary;
@@ -19,19 +19,22 @@ int Timing_Synchronization(int *Samples, int *Coeff) {
 			
 			samplesReal = sample >> 16;   
 			samplesImaginary = (sample << 16) >> 16; 
-			coeffReal = Coeff[i] >> 16; 
-			coeffImaginary = (Coeff[i] << 16) >> 16;
+			coeff = Coeff[i];
+			coeffReal = coeff >> 16; 
+			coeffImaginary = (coeff << 16) >> 16;
 			//because (a+ib)*(c+id) = (ac - db) + (ad + bc)i
 			accReal += ((samplesReal*coeffReal) - (samplesImaginary*coeffImaginary)) >> 16;
 			accImaginary += ((samplesReal*coeffImaginary) + (samplesImaginary*coeffReal)) >> 16;
 		}	
-		sample = Samples[++i];
+		i = i+1;
+		sample = Samples[i];
 		if (sample != 0) {
 			
 			samplesReal = sample >> 16;  
 			samplesImaginary = (sample << 16) >> 16; 
-			coeffReal = Coeff[i] >> 16;  
-			coeffImaginary = (Coeff[i] << 16) >> 16;
+			coeff = Coeff[i];
+			coeffReal = coeff >> 16;  
+			coeffImaginary = (coeff << 16) >> 16;
 			//because (a+ib)*(c+id) = (ac - db) + (ad + bc)i
 			accReal += ((samplesReal*coeffReal) - (samplesImaginary*coeffImaginary)) >> 16;
 			accImaginary += ((samplesReal*coeffImaginary) + (samplesImaginary*coeffReal)) >> 16;
@@ -58,4 +61,3 @@ int main()
 		};
 	}
 }
-
