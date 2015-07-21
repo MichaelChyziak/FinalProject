@@ -57,7 +57,7 @@ int Timing_Synchronization(int *Samples, int *Coeff) {
 		ADD i, i, #1
 //		forLoop:
 		CMP i, limit
-		BEQ firstLoop 
+		BNE firstLoop 
 		MUL accDummy1, accReal, accReal
 		MLA accDummy2, accImaginary, accImaginary, accDummy1
 	}
