@@ -9,9 +9,8 @@ int i,j,sample[256];
 int Timing_Synchronization(int *Samples, int *Coeff) {
 	int accReal = 0;
 	int accImaginary = 0;
-	int limit = 256;
 	int i;	
-	for (i = 0; i < limit; i++) {
+	for (i = 0; i < 256; i++) {
 		int samplesReal, coeffReal, samplesImaginary, coeffImaginary, coeff;
 		int sample = Samples[i];	
 		samplesReal = sample >> 16;   
