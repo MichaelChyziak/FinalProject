@@ -1,26 +1,16 @@
-
+/*
 #include "compact_coeff.h"
 #include "compact_R.h"
 #pragma ARM
 
 int Timing_Synchronization(int *Samples, int *Coeff) {
-	int accReal, accImaginary, limit, i, sample, samplesReal, samplesImaginary, coeffReal, coeffImaginary, accDummy1, accDummy2;
+	int accReal, accImaginary, i, sample, samplesReal, samplesImaginary, coeffReal, coeffImaginary, accDummy1, accDummy2;
 	__asm {
 		MOV accReal, #0
 		MOV accImaginary, #0
 		MOV i, #0
-		MOV limit, #256
-		LDR sample, [Samples, #516]  //516 = 129 *4
-		CMP sample, #0
-		BNE firstLoop
-		LDR sample, [Samples, #512] //512 = 128 * 4
-		CMP sample, #0
-		BNE firstLoop
-		MOV limit, #128
 		firstLoop:
 		LDR sample, [Samples, i, LSL #2]
-//		CMP sample, #0
-//		BEQ secondLoop
 		MOV samplesReal, sample, ASR #16
 		MOV samplesImaginary, sample, LSL #16
 		MOV samplesImaginary, samplesImaginary, ASR #16
@@ -35,11 +25,10 @@ int Timing_Synchronization(int *Samples, int *Coeff) {
 		MUL accDummy1, samplesReal, coeffImaginary
 		MLA accDummy2, samplesImaginary, coeffReal, accDummy1
 		ADD accImaginary, accImaginary, accDummy2, ASR #16
-	//	secondLoop:
+		
+		//unrolled second time
 		ADD i, i, #1
 		LDR sample, [Samples, i, LSL #2]
-//		CMP sample, #0
-//		BEQ forLoop
 		MOV samplesReal, sample, ASR #16
 		MOV samplesImaginary, sample, LSL #16
 		MOV samplesImaginary, samplesImaginary, ASR #16
@@ -55,8 +44,9 @@ int Timing_Synchronization(int *Samples, int *Coeff) {
 		MLA accDummy2, samplesImaginary, coeffReal, accDummy1
 		ADD accImaginary, accImaginary, accDummy2, ASR #16
 		ADD i, i, #1
-//		forLoop:
-		CMP i, limit
+		
+		//for statement
+		CMP i, #256
 		BNE firstLoop 
 		MUL accDummy1, accReal, accReal
 		MLA accDummy2, accImaginary, accImaginary, accDummy1
@@ -84,3 +74,4 @@ int main()
 		};
 	}
 }  
+*/
