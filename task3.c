@@ -19,8 +19,8 @@ int Timing_Synchronization(int *Samples, int *Coeff) {
 		coeffReal = coeff >> 16; 
 		coeffImaginary = (coeff << 16) >> 16;
 		//because (a+ib)*(c+id) = (ac - db) + (ad + bc)i
-		accReal += ((samplesReal*coeffReal) - (samplesImaginary*coeffImaginary)) >> 16;
-		accImaginary += ((samplesReal*coeffImaginary) + (samplesImaginary*coeffReal)) >> 16;
+		accReal += ((samplesReal*coeffReal)>>16) - ((samplesImaginary*coeffImaginary) >> 16);
+		accImaginary += ((samplesReal*coeffImaginary)>>16) + ((samplesImaginary*coeffReal) >> 16);
 			
 		i = i+1;
 		sample = Samples[i];
@@ -30,8 +30,8 @@ int Timing_Synchronization(int *Samples, int *Coeff) {
 		coeffReal = coeff >> 16;  
 		coeffImaginary = (coeff << 16) >> 16;
 		//because (a+ib)*(c+id) = (ac - db) + (ad + bc)i
-		accReal += ((samplesReal*coeffReal) - (samplesImaginary*coeffImaginary)) >> 16;
-		accImaginary += ((samplesReal*coeffImaginary) + (samplesImaginary*coeffReal)) >> 16;
+		accReal += ((samplesReal*coeffReal)>>16) - ((samplesImaginary*coeffImaginary) >> 16);
+		accImaginary += ((samplesReal*coeffImaginary)>>16) + ((samplesImaginary*coeffReal) >> 16);
 }
 	return (accReal*accReal) + (accImaginary*accImaginary);  //Real(acc)^2 + Imag(acc)^2		
 }
