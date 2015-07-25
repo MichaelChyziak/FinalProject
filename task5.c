@@ -26,8 +26,8 @@ float Timing_Synchronization_float(int *Samples, int *Coeff) {
 		coeffReal = coeff >> 16; //gets real value of the coefficient (top 16 bits)
 		coeffImaginary = (coeff << 16) >> 16; //get imaginary value of the coefficient (bottom 16 bits)
 		//because (a+ib)*(c+id) = (ac - db) + (ad + bc)i
-		accReal += (samplesReal*coeffReal) - (samplesImaginary*coeffImaginary);
-		accImaginary += (samplesReal*coeffImaginary) + (samplesImaginary*coeffReal);
+		accReal += ((samplesReal*coeffReal)>>16) - ((samplesImaginary*coeffImaginary) >> 16);
+		accImaginary += ((samplesReal*coeffImaginary)>>16) + ((samplesImaginary*coeffReal) >> 16);
 
 		//unrolling loop once and thus redo-ing the same calculations again
 		i++;
@@ -37,8 +37,8 @@ float Timing_Synchronization_float(int *Samples, int *Coeff) {
 		coeff = Coeff[i];
 		coeffReal = coeff >> 16;
 		coeffImaginary = (coeff << 16) >> 16;
-		accReal += (samplesReal*coeffReal) - (samplesImaginary*coeffImaginary);
-		accImaginary += (samplesReal*coeffImaginary) + (samplesImaginary*coeffReal);
+		accReal += ((samplesReal*coeffReal)>>16) - ((samplesImaginary*coeffImaginary) >> 16);
+		accImaginary += ((samplesReal*coeffImaginary)>>16) + ((samplesImaginary*coeffReal) >> 16);
 }
 	return (accReal*accReal) + (accImaginary*accImaginary);  //MODULO = Real(acc)^2 + Imag(acc)^2
 }
