@@ -16,10 +16,11 @@ int Timing_Synchronization(int *Samples, int *Coeff) {
 		LDRSH coeffReal, [Coeff], #2
 		MUL accDummy1, samplesReal, coeffReal
 		MUL accDummy2, samplesImaginary, coeffImaginary
-		SUB accDummy1, accDummy1, accDummy2
 		ADD accReal, accReal, accDummy1, ASR #16
+		SUB accReal, accReal, accDummy2, ASR #16
 		MUL accDummy1, samplesReal, coeffImaginary
-		MLA accDummy2, samplesImaginary, coeffReal, accDummy1
+		MUL accDummy2, samplesImaginary, coeffReal
+		ADD accImaginary, accImaginary, accDummy1, ASR #16
 		ADD accImaginary, accImaginary, accDummy2, ASR #16
 		
 		//unrolled second time
@@ -29,10 +30,11 @@ int Timing_Synchronization(int *Samples, int *Coeff) {
 		LDRSH coeffReal, [Coeff], #2
 		MUL accDummy1, samplesReal, coeffReal
 		MUL accDummy2, samplesImaginary, coeffImaginary
-		SUB accDummy1, accDummy1, accDummy2
 		ADD accReal, accReal, accDummy1, ASR #16
+		SUB accReal, accReal, accDummy2, ASR #16
 		MUL accDummy1, samplesReal, coeffImaginary
-		MLA accDummy2, samplesImaginary, coeffReal, accDummy1
+		MUL accDummy2, samplesImaginary, coeffReal
+		ADD accImaginary, accImaginary, accDummy1, ASR #16
 		ADD accImaginary, accImaginary, accDummy2, ASR #16
 		ADD i, i, #2
 		
@@ -65,4 +67,3 @@ int main()
 		};
 	}
 }  
-
