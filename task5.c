@@ -98,10 +98,11 @@ int Timing_Synchronization_inline(int *Samples, int *Coeff) {
 	asm("LDRSH r9, [r1], #2");
 	asm("MUL r2, r7, r9");
 	asm("MUL r3, r8, r10");
-	asm("SUB r2, r2, r3");
+	asm("SUB r4, r4, r3, ASR #16");
 	asm("ADD r4, r4, r2, ASR #16");
 	asm("MUL r2, r7, r10");
-	asm("MLA r3, r8, r9, r2");
+	asm("MUL r3, r8, r9");
+	asm("ADD r5, r5, r2, ASR #16");
 	asm("ADD r5, r5, r3, ASR #16");
 
 	//unrolled second time
@@ -111,12 +112,12 @@ int Timing_Synchronization_inline(int *Samples, int *Coeff) {
 	asm("LDRSH r9, [r1], #2");
 	asm("MUL r2, r7, r9");
 	asm("MUL r3, r8, r10");
-	asm("SUB r2, r2, r3");
+	asm("SUB r4, r4, r3, ASR #16");
 	asm("ADD r4, r4, r2, ASR #16");
 	asm("MUL r2, r7, r10");
-	asm("MLA r3, r8, r9, r2");
+	asm("MUL r3, r8, r9");
+	asm("ADD r5, r5, r2, ASR #16");
 	asm("ADD r5, r5, r3, ASR #16");
-	asm("ADD r6, r6, #2");
 
 	//for statement
 	asm("CMP r6, #256");
