@@ -1,19 +1,23 @@
-
+/*
 #include "compact_coeff.h"
 #include "compact_R.h"
 #pragma ARM
 
 int Timing_Synchronization(int *Samples, int *Coeff) {
-	int accReal, accImaginary, i, samplesReal, samplesImaginary, coeffReal, coeffImaginary, accDummy1, accDummy2;
+	int accReal, accImaginary, i, sample, samplesReal, samplesImaginary, coeffReal, coeffImaginary, accDummy1, accDummy2;
 	__asm {
 		MOV accReal, #0
 		MOV accImaginary, #0
 		MOV i, #0
 		firstLoop:
-		LDRSH samplesImaginary, [Samples], #2
-		LDRSH samplesReal, [Samples], #2
-		LDRSH coeffImaginary, [Coeff], #2
-		LDRSH coeffReal, [Coeff], #2
+		LDR sample, [Samples, i, LSL #2]
+		MOV samplesReal, sample, ASR #16
+		MOV samplesImaginary, sample, LSL #16
+		MOV samplesImaginary, samplesImaginary, ASR #16
+		LDR sample, [Coeff, i, LSL #2]
+		MOV coeffReal, sample, ASR #16
+		MOV coeffImaginary, sample, LSL #16
+		MOV coeffImaginary, coeffImaginary, ASR #16
 		MUL accDummy1, samplesReal, coeffReal
 		MUL accDummy2, samplesImaginary, coeffImaginary
 		SUB accDummy1, accDummy1, accDummy2
@@ -23,10 +27,15 @@ int Timing_Synchronization(int *Samples, int *Coeff) {
 		ADD accImaginary, accImaginary, accDummy2, ASR #16
 		
 		//unrolled second time
-		LDRSH samplesImaginary, [Samples], #2
-		LDRSH samplesReal, [Samples], #2
-		LDRSH coeffImaginary, [Coeff], #2
-		LDRSH coeffReal, [Coeff], #2
+		ADD i, i, #1
+		LDR sample, [Samples, i, LSL #2]
+		MOV samplesReal, sample, ASR #16
+		MOV samplesImaginary, sample, LSL #16
+		MOV samplesImaginary, samplesImaginary, ASR #16
+		LDR sample, [Coeff, i, LSL #2]
+		MOV coeffReal, sample, ASR #16
+		MOV coeffImaginary, sample, LSL #16
+		MOV coeffImaginary, coeffImaginary, ASR #16
 		MUL accDummy1, samplesReal, coeffReal
 		MUL accDummy2, samplesImaginary, coeffImaginary
 		SUB accDummy1, accDummy1, accDummy2
@@ -34,7 +43,7 @@ int Timing_Synchronization(int *Samples, int *Coeff) {
 		MUL accDummy1, samplesReal, coeffImaginary
 		MLA accDummy2, samplesImaginary, coeffReal, accDummy1
 		ADD accImaginary, accImaginary, accDummy2, ASR #16
-		ADD i, i, #2
+		ADD i, i, #1
 		
 		//for statement
 		CMP i, #256
@@ -65,4 +74,4 @@ int main()
 		};
 	}
 }  
-
+*/
