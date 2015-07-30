@@ -269,7 +269,7 @@ int main(void) {
 							*LED = 0x0;
 						}
 					}
-					if (*SWITCH == 0x0 || *SWITCH == 0x1 || *SWITCH == 0x2) { //TODO: ADD THE INLINE SWITCH ALSO
+					if (*SWITCH == 0x0 || *SWITCH == 0x1 || *SWITCH == 0x2 || *SWITCH == 0x4) {
 						break;
 					}
 				}
