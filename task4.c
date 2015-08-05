@@ -3,7 +3,7 @@
 #include "compact_R.h"
 #pragma ARM
 
-int Timing_Synchronization(int *Samples, int *Coeff) {
+unsigned int Timing_Synchronization(int *Samples, int *Coeff) {
 	int accReal, accImaginary, i, sample, samplesReal, samplesImaginary, coeffReal, coeffImaginary, accDummy1, accDummy2;
 	__asm {
 		MOV accReal, #0
@@ -56,8 +56,8 @@ int Timing_Synchronization(int *Samples, int *Coeff) {
 	return accDummy2;
 }
 
-const int DetThr=0x69000;
-int mod_out;
+const unsigned int DetThr=0x69000;
+unsigned int mod_out;
 int i,j,sample[256];
 int main()
 {
