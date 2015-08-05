@@ -2,11 +2,11 @@
 #include "compact_coeff.h"
 #include "compact_R.h"
 
-const int DetThr=0x69000;
-int mod_out;
+const unsigned int DetThr=0x69000;
+unsigned int mod_out;
 int i,j,sample[256];
 
-int Timing_Synchronization(int *Samples, int *Coeff) {
+unsigned int Timing_Synchronization(int *Samples, int *Coeff) {
 	int accReal = 0;
 	int accImaginary = 0;
 	int i;	
