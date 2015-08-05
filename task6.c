@@ -40,7 +40,7 @@ float Timing_Synchronization_float(int *Samples, int *Coeff) {
 }
 
 
-int Timing_Synchronization_int(int *Samples, int *Coeff) {
+unsigned int Timing_Synchronization_int(int *Samples, int *Coeff) {
 	int accReal = 0;
 	int accImaginary = 0;
 	int i;
@@ -74,7 +74,7 @@ int Timing_Synchronization_int(int *Samples, int *Coeff) {
 }
 
 
-int Timing_Synchronization_inline(int *Samples, int *Coeff) {
+unsigned int Timing_Synchronization_inline(int *Samples, int *Coeff) {
 	//Samples is in r0 and coeff is in r1 because r0-r3 reserved for functions
 	//accReal, accImaginary, i, samplesReal, samplesImaginary, coeffReal, coeffImaginary  are from 4-10 respectively. accDummy1/sample, accDummy2 are r2 and r3
 	//at the end when storing in dummy2, make it r0 (only at this time tho)
@@ -141,12 +141,10 @@ int Timing_Synchronization_inline(int *Samples, int *Coeff) {
 
 float DetThr_float= 0;
 float mod_out_float;
-int DetThr_int = 0;
-int mod_out_int;
+unsigned int DetThr_int = 0;
+unsigned int mod_out_int;
 
 int i,j,sample[256];
-
-
 
 int synch[20] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
 int synch_location = 0;
@@ -161,13 +159,13 @@ int main(void) {
 	while(1) {
 		if (*BUTTON == 0x2) { //Following if block calculates the threshold automatically
 			float max_float = 0;
-			int max_int = 0;
+			unsigned int max_int = 0;
 			*LED = 0x0;//turn all LEDs off
 			for(j=0;j<256;j++) sample[j]=0; // intialization, not necessary on a simulator, may be needed on a board
 			// Parsing one by one all input samples. Every time we add a sample in slot 1,
 			// we shift all samples of one unit and we remove the sample in slot 256, then we run the FIR again
 			for(i=0;i<10000;i++) {
-				for(j=255;j>0;j--) sample[j]=sample[j-1];sample[0]=rand()>>8;
+				for(j=255;j>0;j--) sample[j]=sample[j-1];sample[0]=(rand()>>8);
 				mod_out_float=Timing_Synchronization_float(sample,coef);
 				mod_out_int = Timing_Synchronization_int(sample, coef);
 				if (mod_out_float > max_float)
@@ -182,7 +180,7 @@ int main(void) {
 			DetThr_float = 0.9 * max_float; //sets float mode detection threshold
 			DetThr_int = 0.9 * max_int; //sets integer mode detection threshold
 			*LED = 0x1; // turns on first LED to indicate calculation is complete
-			//in real world, this would be a signal to the next peice of code which determines synchronization
+			//in real world, this would be a signal to the next piece of code which determines synchronization
 		}
 
 		else if (*BUTTON == 0x1) { //This if block determines the synchronization, using floating point, or integer calculation
@@ -223,7 +221,7 @@ int main(void) {
 				// Parsing one by one all input samples. Every time we add a sample in slot 1,
 				// we shift all samples of one unit and we remove the sample in slot 256, then we run the FIR again
 				for(i=0;i<40000;i++) {
-					for(j=255;j>0;j--) sample[j]=sample[j-1];sample[0]=rand()>>8;
+					for(j=255;j>0;j--) sample[j]=sample[j-1];sample[0]=(rand()>>8);
 					mod_out_int=Timing_Synchronization_int(sample,coef);
 					if (mod_out_int>=DetThr_int)
 					{
@@ -263,17 +261,15 @@ int main(void) {
 			}
 
 			//error version
-			else if (*SWITCH != 0x0)  //this if block causes LED's to flash continuously if they are in an incorrect configuration
-				int flashing;         //such as more than one switch or an incorrect switch. Flashing stops when switches set correctly
+			else if (*SWITCH != 0x0) { //this if block causes LED's to flash continuously if they are in an incorrect configuration
+										//such as more than one switch or an incorrect switch. Flashing stops when switches set correctly
 				int flash;
 				while (1) {
-					for (flashing = 0; flashing < 15; flashing++) {
-						for (flash = 0; flash < 200000; flash++) {
-							*LED = 0xff; //flash on
-						}
-						for (flash = 0; flash < 200000; flash++) {
-							*LED = 0x0; //flash off
-						}
+					for (flash = 0; flash < 2500000; flash++) {
+						*LED = 0xff; //flash on
+					}
+					for (flash = 0; flash < 2500000; flash++) {
+						*LED = 0x0; //flash off
 					}
 					if (*SWITCH == 0x0 || *SWITCH == 0x1 || *SWITCH == 0x2 || *SWITCH == 0x4) {
 						break;
