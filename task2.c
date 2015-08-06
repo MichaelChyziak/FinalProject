@@ -30,7 +30,7 @@ float Timing_Synchronization(int *Samples, int *Coeff) {
 		accImaginary += (samplesReal*coeffImaginary) + (samplesImaginary*coeffReal);
 }
 	
-	return (accReal*accReal) + (accImaginary*accImaginary);  //Real(acc)^2 + Imag(acc)^2	
+	return (accReal*accReal) + (accImaginary*accImaginary);  //MODULO = Real(acc)^2 + Imag(acc)^2
 	
 }
 
