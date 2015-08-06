@@ -1,4 +1,3 @@
-/*
 #include "compact_coeff.h"
 #include "compact_R.h"
 #pragma ARM
@@ -6,28 +5,28 @@
 unsigned int Timing_Synchronization(int *Samples, int *Coeff) {
 	int accReal, accImaginary, i, sample, samplesReal, samplesImaginary, coeffReal, coeffImaginary, accDummy1, accDummy2;
 	__asm {
-		MOV accReal, #0
-		MOV accImaginary, #0
-		MOV i, #0
+		MOV accReal, #0 //initializing accReal
+		MOV accImaginary, #0 //initializing accImaginary
+		MOV i, #0 //initializing loop counter
 		firstLoop:
-		LDR sample, [Samples, i, LSL #2]
-		MOV samplesReal, sample, ASR #16
-		MOV samplesImaginary, sample, LSL #16
-		MOV samplesImaginary, samplesImaginary, ASR #16
-		LDR sample, [Coeff, i, LSL #2]
-		MOV coeffReal, sample, ASR #16
-		MOV coeffImaginary, sample, LSL #16
-		MOV coeffImaginary, coeffImaginary, ASR #16
-		MUL accDummy1, samplesReal, coeffReal
+		LDR sample, [Samples, i, LSL #2] //load Samples[i] into temp variable.
+		MOV samplesReal, sample, ASR #16 //get real part of sample
+		MOV samplesImaginary, sample, LSL #16 
+		MOV samplesImaginary, samplesImaginary, ASR #16 //get imaginary part of sample
+		LDR sample, [Coeff, i, LSL #2] //load Coeff[i] into temp variable
+		MOV coeffReal, sample, ASR #16 //get real part of coefficient
+		MOV coeffImaginary, sample, LSL #16 
+		MOV coeffImaginary, coeffImaginary, ASR #16 //get imaginary part of coefficient
+		MUL accDummy1, samplesReal, coeffReal 
 		MUL accDummy2, samplesImaginary, coeffImaginary
 		ADD accReal, accReal, accDummy1, ASR #16
-		SUB accReal, accReal, accDummy2, ASR #16
+		SUB accReal, accReal, accDummy2, ASR #16 //preceding four lines compute accReal
 		MUL accDummy1, samplesReal, coeffImaginary
 		MUL accDummy2, samplesImaginary, coeffReal
 		ADD accImaginary, accImaginary, accDummy1, ASR #16
-		ADD accImaginary, accImaginary, accDummy2, ASR #16
+		ADD accImaginary, accImaginary, accDummy2, ASR #16 //preceding four lines compute accImaginary
 		
-		//unrolled second time
+		//unrolled loop, operationally the same as above
 		ADD i, i, #1
 		LDR sample, [Samples, i, LSL #2]
 		MOV samplesReal, sample, ASR #16
@@ -51,9 +50,9 @@ unsigned int Timing_Synchronization(int *Samples, int *Coeff) {
 		CMP i, #256
 		BNE firstLoop 
 		MUL accDummy1, accReal, accReal
-		MLA accDummy2, accImaginary, accImaginary, accDummy1
+		MLA accDummy2, accImaginary, accImaginary, accDummy1 //compute the modulo of (accReal,accImaginary)
 	}
-	return accDummy2;
+	return accDummy2; //return modulo
 }
 
 const unsigned int DetThr=0x69000;
@@ -76,4 +75,4 @@ int main()
 		};
 	}
 }  
-*/
+
