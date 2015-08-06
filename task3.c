@@ -1,4 +1,3 @@
-
 #include "compact_coeff.h"
 #include "compact_R.h"
 
@@ -10,18 +9,19 @@ unsigned int Timing_Synchronization(int *Samples, int *Coeff) {
 	int accReal = 0;
 	int accImaginary = 0;
 	int i;	
-	for (i = 0; i < 256; i++) {
-		int samplesReal, coeffReal, samplesImaginary, coeffImaginary, coeff;
-		int sample = Samples[i];	
-		samplesReal = sample >> 16;   
-		samplesImaginary = (sample << 16) >> 16; 
+	for (i = 0; i < 256; i++) { //for all 256 samples
+		int samplesReal, coeffReal, samplesImaginary, coeffImaginary, coeff; //temporary variables
+		int sample = Samples[i]; 	
+		samplesReal = sample >> 16; //gets real value of the samples (top 16 bits)
+		samplesImaginary = (sample << 16) >> 16;  //gets imaginary value of the samples (bottom 16 bits)
 		coeff = Coeff[i];
-		coeffReal = coeff >> 16; 
+		coeffReal = coeff >> 16; //gets real value of the coefficient (top 16 bits)
 		coeffImaginary = (coeff << 16) >> 16;
 		//because (a+ib)*(c+id) = (ac - db) + (ad + bc)i
 		accReal += ((samplesReal*coeffReal)>>16) - ((samplesImaginary*coeffImaginary) >> 16);
 		accImaginary += ((samplesReal*coeffImaginary)>>16) + ((samplesImaginary*coeffReal) >> 16);
-			
+		
+		//unrolling loop once and thus redo-ing the same calculations again	
 		i = i+1;
 		sample = Samples[i];
 		samplesReal = sample >> 16;  
@@ -33,7 +33,7 @@ unsigned int Timing_Synchronization(int *Samples, int *Coeff) {
 		accReal += ((samplesReal*coeffReal)>>16) - ((samplesImaginary*coeffImaginary) >> 16);
 		accImaginary += ((samplesReal*coeffImaginary)>>16) + ((samplesImaginary*coeffReal) >> 16);
 }
-	return (accReal*accReal) + (accImaginary*accImaginary);  //Real(acc)^2 + Imag(acc)^2		
+	return (accReal*accReal) + (accImaginary*accImaginary);  //MODULO = Real(acc)^2 + Imag(acc)^2	
 }
 
 
