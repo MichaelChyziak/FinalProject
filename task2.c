@@ -1,4 +1,3 @@
-/*
 #include "compact_coeff.h"
 #include "compact_R.h"
 
@@ -6,18 +5,19 @@ float Timing_Synchronization(int *Samples, int *Coeff) {
 	float accReal = 0;
 	float accImaginary = 0;
 	int i;
-	for (i = 0; i < 256; i++) {
-		int samplesReal, coeffReal, samplesImaginary, coeffImaginary, coeff;
-		int sample = Samples[i];	
-		samplesReal = sample >> 16;   
+	for (i = 0; i < 256; i++) {//for all 256 samples
+		int samplesReal, coeffReal, samplesImaginary, coeffImaginary, coeff;  //temporary variables
+		int sample = Samples[i]; //gets real value of the samples (top 16 bits)
+		samplesReal = sample >> 16;  //gets imaginary value of the samples (bottom 16 bits)   
 		samplesImaginary = (sample << 16) >> 16; 
 		coeff = Coeff[i];
-		coeffReal = coeff >> 16; 
-		coeffImaginary = (coeff << 16) >> 16;
+		coeffReal = coeff >> 16; //gets real value of the coefficient (top 16 bits)
+		coeffImaginary = (coeff << 16) >> 16;//get imaginary value of the coefficient (bottom 16 bits)
 		//because (a+ib)*(c+id) = (ac - db) + (ad + bc)i
 		accReal += (samplesReal*coeffReal) - (samplesImaginary*coeffImaginary);
 		accImaginary += (samplesReal*coeffImaginary) + (samplesImaginary*coeffReal);	
 		
+		//unrolling loop once and thus redo-ing the same calculations again
 		i++;
 		sample = Samples[i];
 		samplesReal = sample >> 16;  
@@ -55,4 +55,4 @@ int main()
 		};
 	}
 } 
-*/
+
